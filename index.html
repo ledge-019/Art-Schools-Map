@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link rel="stylesheet" href="css/qgis2web.css" />
+    <link rel="stylesheet" href="css/fontawesome-all.min.css" />
+    <link rel="stylesheet" href="css/filter.css" />
+    <link rel="stylesheet" href="css/nouislider.min.css" />
+
+    <style>
+      html,
+      body,
+      #map {
+        width: 100%;
+        height: 98%;
+        padding: 0px;
+        margin: 0px;
+      }
+    </style>
+    <title></title>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark">
+      <h4 class="text-white px-4">ART SCHOOLS IN NCR</h1>
+    </nav>
+
+    <div id="map"></div>
+
+    <div class="float-sm-left" style="position: absolute; z-index: 999; top: 90%; left: 10px ">
+      <img src="./images/north-arrow.png" width="10%"/>
+    </div>
+
+
+
+
+    <script src="js/qgis2web_expressions.js"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/leaflet.rotatedMarker.js"></script>
+    <script src="js/leaflet.pattern.js"></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="js/Autolinker.min.js"></script>
+    <script src="js/rbush.min.js"></script>
+    <script src="js/labelgun.min.js"></script>
+    <script src="js/labels.js"></script>
+    <script src="js/tailDT.js"></script>
+    <script src="js/nouislider.min.js"></script>
+    <script src="js/wNumb.js"></script>
+    <script src="data/Schooldata_1.js"></script>
+
+    <script>
+
+      var highlightLayer;
+
+      function highlightFeature(e) {                                 // Highlight Function
+        highlightLayer = e.target;
+
+        if (e.target.feature.geometry.type === "LineString") {
+          highlightLayer.setStyle({
+            color: "#ffff00",
+          });
+        } else {
+          highlightLayer.setStyle({
+            fillColor: "#ffff00",
+            fillOpacity: 1,
+          });
+        }
+        highlightLayer.openPopup();
+      }
+
+
+      var map = L.map("map", {
+        zoomControl: true,
+        maxZoom: 28,
+        minZoom: 5,
+      }).fitBounds([
+        [14.04700778781001, 120.44621362579024],
+        [14.999914662212959, 122.15227928590292],
+      ]);
+
+
+      var hash = new L.Hash(map);
+      
+      map.attributionControl.setPrefix(
+        '<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>'
+      );
+
+
+      var autolinker = new Autolinker({
+        truncate: { length: 30, location: "smart" },
+      });
+
+      var bounds_group = new L.featureGroup([]);
+
+      function setBounds() {}
+
+
+      map.createPane("pane_OSMStandard_0");
+      map.getPane("pane_OSMStandard_0").style.zIndex = 400;
+
+
+      var layer_OSMStandard_0 = L.tileLayer(
+        "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          pane: "pane_OSMStandard_0",
+          opacity: 1.0,
+          attribution:
+            '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+          minZoom: 5,
+          maxZoom: 28,
+          minNativeZoom: 0,
+          maxNativeZoom: 19,
+        }
+      );
+
+
+      layer_OSMStandard_0;
+      map.addLayer(layer_OSMStandard_0);
+
+
+      function pop_Schooldata_1(feature, layer) {
+        layer.on({
+          /*mouseout: function (e) {
+            for (i in e.target._eventParents) {
+              e.target._eventParents[i].resetStyle(e.target);
+            }
+            if (typeof layer.closePopup == "function") {
+              layer.closePopup();
+            } else {
+              layer.eachLayer(function (feature) {
+                feature.closePopup();
+              });
+            }
+          },*/
+          //mouseover: highlightFeature,
+        });
+
+ /*       <tr>\
+          <th scope="row">Latitude</th>\
+          <td>' +
+(feature.properties["Latitude"] !== null
+? autolinker.link(feature.properties["Latitude"].toLocaleString())
+: "") +
+'</td>\
+      </tr>\
+      <tr>\
+          <th scope="row">Longitude</th>\
+          <td>' +
+(feature.properties["Longitude"] !== null
+? autolinker.link(feature.properties["Longitude"].toLocaleString())
+: "") +
+'</td>\
+      </tr>\ */
+
+        var popupContent =
+          '<table>\
+                    <tr>\
+                        <th scope="row">School</th>\
+                        <td>' +
+          (feature.properties["School"] !== null
+            ? autolinker.link(feature.properties["School"].toLocaleString())
+            : "") +
+          '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Courses</th>\
+                        <td>' +
+          (feature.properties["Courses"] !== null
+            ? autolinker.link(feature.properties["Courses"].toLocaleString())
+            : "") +
+          '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">School Type</th>\
+                        <td>' +
+          (feature.properties["Type"] !== null
+            ? autolinker.link(feature.properties["Type"].toLocaleString())
+            : "") +
+          '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Entrance Exam</th>\
+                        <td>' +
+          (feature.properties["Entrance Exam"] !== null
+            ? autolinker.link(
+                feature.properties["Entrance Exam"].toLocaleString()
+              )
+            : "") +
+          "</td>\
+                    </tr>\
+                </table>";
+        layer.bindPopup(popupContent, { maxHeight: 500, maxWidth: 500});
+      }
+
+
+
+      function style_Schooldata_1_0() {
+        return {
+          pane: "pane_Schooldata_1",
+          rotationAngle: 0.0,
+          rotationOrigin: "center center",
+          icon: L.icon({
+            iconUrl: "markers/Schooldata_1.svg",
+            iconSize: [38.0, 38.0],
+          }),
+          interactive: true,
+        };
+      }
+
+
+      map.createPane("pane_Schooldata_1");
+      map.getPane("pane_Schooldata_1").style.zIndex = 401;
+      map.getPane("pane_Schooldata_1").style["mix-blend-mode"] = "normal";
+
+
+      var layer_Schooldata_1 = new L.geoJson(json_Schooldata_1, {
+        attribution: "",
+        interactive: true,
+        dataVar: "json_Schooldata_1",
+        layerName: "layer_Schooldata_1",
+        pane: "pane_Schooldata_1",
+        onEachFeature: pop_Schooldata_1,
+        pointToLayer: function (feature, latlng) {
+          var context = {
+            feature: feature,
+            variables: {},
+          };
+          return L.marker(latlng, style_Schooldata_1_0(feature));
+        },
+      });
+
+
+      bounds_group.addLayer(layer_Schooldata_1);
+      map.addLayer(layer_Schooldata_1);
+      setBounds();
+      var mapDiv = document.getElementById("map");
+      var row = document.createElement("div");
+      row.className = "row";
+      row.id = "all";
+      row.style.height = "100%";
+      var col1 = document.createElement("div");
+      col1.className = "col-sm-9 m-0 p-0";
+      col1.id = "mapWindow";
+      col1.style.height = "100%";
+      col1.style.width = "75%";
+      col1.style.display = "inline-block";
+
+      var col2 = document.createElement("div");
+      //col2.innerHTML('<div class="sidebar"><nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand" href="#">Sidebar</a></nav><ul class="nav flex-column"><li class="nav-item"><a class="nav-link active" href="#">Home</a></li></ul></div>');
+      col2.className = "col-sm-6 m-0 px-5 py-3 border border-3 border-secondary";
+      //col2.style.height = "99%";
+      col2.style.width = "24.5%";
+      col2.style.height = "100%";
+      col2.id = "menu";
+      col2.style.display = "inline-block";
+
+      col2.innerHTML = "<div class='border-1 '><h5 class='text-center m-auto mb-4 fw-bold '>Map Filters</h5></div>";
+
+      mapDiv.parentNode.insertBefore(row, mapDiv);
+      document.getElementById("all").appendChild(col1);
+      document.getElementById("all").appendChild(col2);
+      col1.appendChild(mapDiv);
+
+      var Filters = { "Entrance Exam": "str", School: "str", Type: "str" };  // Change bool to str
+
+      function filterFunc() {
+        map.eachLayer(function (lyr) {
+          if ("options" in lyr && "dataVar" in lyr["options"]) {
+            features = this[lyr["options"]["dataVar"]].features.slice(0);
+            try {
+              for (key in Filters) {
+                keyS = key.replace(/[^a-zA-Z0-9_]/g, "");
+                if (Filters[key] == "str") {
+                  var selection = [];
+                  var options = document.getElementById("sel_" + keyS).options;
+                  for (var i = 0; i < options.length; i++) {
+                    if (options[i].selected) selection.push(options[i].value);
+                  }
+                  try {
+                    if (key in features[0].properties) {
+                      for (i = features.length - 1; i >= 0; --i) {
+                        if (
+                          selection.indexOf(features[i].properties[key]) < 0 &&
+                          selection.length > 0
+                        ) {
+                          features.splice(i, 1);
+                        }
+                      }
+                    }
+                  } catch (err) {}
+                }
+                if (Filters[key] == "int") {
+                  sliderVals = document
+                    .getElementById("div_" + keyS)
+                    .noUiSlider.get();
+                  try {
+                    if (key in features[0].properties) {
+                      for (i = features.length - 1; i >= 0; --i) {
+                        if (
+                          parseInt(features[i].properties[key]) <
+                            sliderVals[0] ||
+                          parseInt(features[i].properties[key]) > sliderVals[1]
+                        ) {
+                          features.splice(i, 1);
+                        }
+                      }
+                    }
+                  } catch (err) {}
+                }
+                if (Filters[key] == "real") {
+                  sliderVals = document
+                    .getElementById("div_" + keyS)
+                    .noUiSlider.get();
+                  try {
+                    if (key in features[0].properties) {
+                      for (i = features.length - 1; i >= 0; --i) {
+                        if (
+                          features[i].properties[key] < sliderVals[0] ||
+                          features[i].properties[key] > sliderVals[1]
+                        ) {
+                          features.splice(i, 1);
+                        }
+                      }
+                    }
+                  } catch (err) {}
+                }
+                if (
+                  Filters[key] == "date" ||
+                  Filters[key] == "datetime" ||
+                  Filters[key] == "time"
+                ) {
+                  try {
+                    if (key in features[0].properties) {
+                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, "");
+                      startdate = document
+                        .getElementById("dat_" + HTMLkey + "_date1")
+                        .value.replace(" ", "T");
+                      enddate = document
+                        .getElementById("dat_" + HTMLkey + "_date2")
+                        .value.replace(" ", "T");
+                      for (i = features.length - 1; i >= 0; --i) {
+                        if (
+                          features[i].properties[key] < startdate ||
+                          features[i].properties[key] > enddate
+                        ) {
+                          features.splice(i, 1);
+                        }
+                      }
+                    }
+                  } catch (err) {}
+                }
+              }
+            } catch (err) {}
+            this[lyr["options"]["layerName"]].clearLayers();
+            this[lyr["options"]["layerName"]].addData(features);
+          }
+        });
+      }
+
+      document
+        .getElementById("menu")
+        .appendChild(document.createElement("div"));
+      var div_EntranceExam = document.createElement("div");
+      div_EntranceExam.id = "div_EntranceExam";
+      div_EntranceExam.className = "filterselect";
+      document.getElementById("menu").appendChild(div_EntranceExam);
+      sel_EntranceExam = document.createElement("select");
+      sel_EntranceExam.className ="form-select form-select-sm"
+      sel_EntranceExam.multiple = true;
+      sel_EntranceExam.size = 2;
+      sel_EntranceExam.id = "sel_EntranceExam";
+
+      var EntranceExam_options_str = '<option value="Yes">Yes</option>';
+      EntranceExam_options_str += '<option value="No">No</option>';
+      //EntranceExam_options_str += "<option value='' unselected></option>";
+
+      sel_EntranceExam.onchange = function () {
+        filterFunc();
+      };
+
+      var lab_EntranceExam = document.createElement("div");
+      lab_EntranceExam.innerHTML = "<p class='fw-bold py-1 p-0 text-center'>ENTRANCE EXAM</p>";
+      lab_EntranceExam.className = "filterlabel";
+      div_EntranceExam.appendChild(lab_EntranceExam);
+
+      sel_EntranceExam.innerHTML = EntranceExam_options_str;
+      div_EntranceExam.appendChild(sel_EntranceExam);
+
+      var reset_EntranceExam = document.createElement("div");
+      reset_EntranceExam.innerHTML = "<button class='btn btn-success py-1 mt-1 mb-3 mx-0 text-center' style='font-size: 10px'>Clear Filter</button>";
+      reset_EntranceExam.className = "filterlabel";
+      reset_EntranceExam.onclick = function () {
+        var options = document.getElementById("sel_EntranceExam").options;
+        for (var i = 0; i < options.length; i++) {
+          options[i].selected = false;
+        }
+        filterFunc();
+      };
+
+      div_EntranceExam.appendChild(reset_EntranceExam);
+
+      document
+        .getElementById("menu")
+        .appendChild(document.createElement("div"));
+      var div_School = document.createElement("div");
+      div_School.id = "div_School";
+      div_School.className = "filterselect";
+      document.getElementById("menu").appendChild(div_School);
+      sel_School = document.createElement("select");
+      sel_School.className ="form-select form-select-sm";
+      sel_School.multiple = true;
+      sel_School.size = 10;
+      sel_School.id = "sel_School";
+      var School_options_str = '<option value="ACLC - Caloocan">ACLC - Caloocan</option>';
+      sel_School.onchange = function () {
+        filterFunc();
+      };
+
+      School_options_str +=
+        '<option value="ACLC - Taguig">ACLC - Taguig</option>';
+      School_options_str +=
+        '<option value="Arellano University">Arellano University</option>';
+      School_options_str +=
+        '<option value="Asia Pacific College">Asia Pacific College</option>';
+      School_options_str +=
+        '<option value="Asian College - Quezon City">Asian College - Quezon City</option>';
+      School_options_str +=
+        '<option value="Assumption College">Assumption College</option>';
+      School_options_str +=
+        '<option value="Ateneo de Manila University">Ateneo de Manila University</option>';
+      School_options_str +=
+        '<option value="CIIT College of Arts and Technology">CIIT College of Arts and Technology</option>';
+      School_options_str +=
+        '<option value="Centro Escolar University">Centro Escolar University</option>';
+      School_options_str +=
+        '<option value="Centro Escolar University - Makati Gil Puyat">Centro Escolar University - Makati Gil Puyat</option>';
+      School_options_str +=
+        '<option value="College of the Holy Spirit Manila">College of the Holy Spirit Manila</option>';
+      School_options_str +=
+        '<option value="De La Salle University">De La Salle University</option>';
+      School_options_str +=
+        '<option value="De La Salle-College of Saint Benilde">De La Salle-College of Saint Benilde</option>';
+      School_options_str +=
+        '<option value="Enderun Colleges">Enderun Colleges</option>';
+      School_options_str +=
+        '<option value="Eulogio Amang Rodriguez Institute of Science and Technology">Eulogio Amang Rodriguez Institute of Science and Technology</option>';
+      School_options_str +=
+        '<option value="Far Eastern University">Far Eastern University</option>';
+      School_options_str +=
+        '<option value="Far Eastern University Institute of Technology">Far Eastern University Institute of Technology</option>';
+      School_options_str +=
+        '<option value="Gardner College">Gardner College</option>';
+      School_options_str +=
+        '<option value="Informatics College Philippines">Informatics College Philippines</option>';
+      School_options_str +=
+        '<option value="Institute of Creative Entrepreneurship">Institute of Creative Entrepreneurship</option>';
+      School_options_str +=
+        '<option value="Kalayaan College">Kalayaan College</option>';
+      School_options_str +=
+        '<option value="La Consolacion College - Manila">La Consolacion College - Manila</option>';
+      School_options_str +=
+        '<option value="La Consolacion College - Novaliches">La Consolacion College - Novaliches</option>';
+      School_options_str +=
+        '<option value="Lyceum of the Philippines University">Lyceum of the Philippines University</option>';
+      School_options_str +=
+        '<option value="Mapúa University">Mapúa University</option>';
+      School_options_str +=
+        '<option value="Marikina Polytechnic College">Marikina Polytechnic College</option>';
+      School_options_str +=
+        '<option value="Meridian International College of Business and Arts">Meridian International College of Business and Arts</option>';
+      School_options_str +=
+        '<option value="Miriam College">Miriam College</option>';
+      School_options_str +=
+        '<option value="New Era University">New Era University</option>';
+      School_options_str +=
+        '<option value="Pamantasan ng Lungsod ng Valenzuela">Pamantasan ng Lungsod ng Valenzuela</option>';
+      School_options_str +=
+        '<option value="Philippine Normal University">Philippine Normal University</option>';
+      School_options_str +=
+        '<option value="Philippine Women&apos;s University">Philippine Women&apos;s University</option>';
+      School_options_str +=
+        '<option value="Polytechnic University of the Philippines">Polytechnic University of the Philippines</option>';
+      School_options_str +=
+        '<option value="STI College - Caloocan">STI College - Caloocan</option>';
+      School_options_str +=
+        '<option value="STI College - Cubao">STI College - Cubao</option>';
+      School_options_str +=
+        '<option value="STI College - Las Pinas">STI College - Las Pinas</option>';
+      School_options_str +=
+        '<option value="STI College - Novaliches">STI College - Novaliches</option>';
+      School_options_str +=
+        '<option value="STI College - Pasay-EDSA">STI College - Pasay-EDSA</option>';
+      School_options_str +=
+        '<option value="STI College - Quezon Avenue">STI College - Quezon Avenue</option>';
+      School_options_str +=
+        '<option value="STI College - Sta. Mesa">STI College - Sta. Mesa</option>';
+      School_options_str +=
+        '<option value="SoFA Design Institute">SoFA Design Institute</option>';
+      School_options_str +=
+        '<option value="Southville International School and Colleges">Southville International School and Colleges</option>';
+      School_options_str +=
+        '<option value="St. Paul University Manila">St. Paul University Manila</option>';
+      School_options_str +=
+        '<option value="St. Paul University Quezon City">St. Paul University Quezon City</option>';
+      School_options_str +=
+        '<option value="St. Scholastica&apos;s College">St. Scholastica&apos;s College</option>';
+      School_options_str +=
+        '<option value="Tech Pacific College">Tech Pacific College</option>';
+      School_options_str +=
+        '<option value="Technological University of the Philippines">Technological University of the Philippines</option>';
+      School_options_str +=
+        '<option value="Toon City Academy">Toon City Academy</option>';
+      School_options_str +=
+        '<option value="Universal Colleges of Paranaque">Universal Colleges of Paranaque</option>';
+      School_options_str +=
+        '<option value="University of Makati">University of Makati</option>';
+      School_options_str +=
+        '<option value="University of Santo Tomas">University of Santo Tomas</option>';
+      School_options_str +=
+        '<option value="University of the East">University of the East</option>';
+      School_options_str +=
+        '<option value="University of the East - Caloocan">University of the East - Caloocan</option>';
+      School_options_str +=
+        '<option value="University of the Philippines - Diliman">University of the Philippines - Diliman</option>';
+      School_options_str +=
+        '<option value="University of the Philippines - Manila">University of the Philippines - Manila</option>';
+      School_options_str += '<option value="iAcademy">iAcademy</option>';
+      //School_options_str += "<option value='' unselected></option>";
+
+
+      var lab_School = document.createElement("div");
+      lab_School.innerHTML = "<p class='fw-bold py-1 p-0 text-center'>ART SCHOOLS</p>";
+      lab_School.className = "filterlabel";
+      div_School.appendChild(lab_School);
+
+      sel_School.innerHTML = School_options_str;
+      div_School.appendChild(sel_School);
+
+
+      var reset_School = document.createElement("div");
+      reset_School.innerHTML = "<button class='btn btn-success py-1 mt-1 mb-3 mx-0 text-center' style='font-size: 10px'>Clear Filter</button>";
+      reset_School.className = "filterlabel";
+      reset_School.onclick = function () {
+        var options = document.getElementById("sel_School").options;
+        for (var i = 0; i < options.length; i++) {
+          options[i].selected = false;
+        }
+        filterFunc();
+      };
+      div_School.appendChild(reset_School);
+
+      document
+        .getElementById("menu")
+        .appendChild(document.createElement("div"));
+      var div_Type = document.createElement("div");
+      div_Type.id = "div_Type";
+      div_Type.className = "filterselect";
+      document.getElementById("menu").appendChild(div_Type);
+      sel_Type = document.createElement("select");
+      sel_Type.className = "form-select form-select-sm"
+      sel_Type.multiple = true;
+      sel_Type.size = 2;
+      sel_Type.id = "sel_Type";
+      var Type_options_str = '<option value="Private">Private School</option>';
+
+      sel_Type.onchange = function () {
+        filterFunc();
+      };
+      var lab_Type = document.createElement("div");
+      lab_Type.innerHTML = "<p class='fw-bold py-1 p-0 text-center'>SCHOOL TYPE</p>";
+      lab_Type.className = "filterlabel";
+      div_Type.appendChild(lab_Type);
+
+      Type_options_str += '<option value="Public">Public School</option>';
+      //Type_options_str += "<option value='' unselected></option>";
+      sel_Type.innerHTML = Type_options_str;
+      div_Type.appendChild(sel_Type);
+
+      var reset_Type = document.createElement("div");
+      reset_Type.innerHTML = "<button class='btn btn-success py-1 mt-1 mb-3 mx-0 text-center' style='font-size: 10px'>Clear Filter</button>";
+      reset_Type.className = "filterlabel";
+      reset_Type.onclick = function () {
+        var options = document.getElementById("sel_Type").options;
+        for (var i = 0; i < options.length; i++) {
+          options[i].selected = false;
+        }
+        filterFunc();
+      };
+      div_Type.appendChild(reset_Type);
+    </script>
+
+
+  </body>
+</html>
